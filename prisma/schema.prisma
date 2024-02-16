@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  username   String   @unique
+  fullname   String
+  address    String   @db.Text
+  nohp       Int      @unique
+  email      String   @unique
+  password   String
+  is_blocked Boolean  @default(false)
+  roleId     Int      @default(1)
+  shopId     Shop?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  role Role @relation(fields: [roleId], references: [id])
+
+  tokens   Token[]
+  products Product[]
+  Cart     Cart[]
+
+  @@map("users")
+}
+
+model Token {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @db.Text
+  expire_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("tokens")
+}
+
+model Role {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users       User[]
+  permissions PermissionRole[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roles PermissionRole[]
+
+  @@map("permissions")
+}
+
+model PermissionRole {
+  permissionId Int
+  roleId       Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  permission Permission @relation(fields: [permissionId], references: [id])
+  role       Role       @relation(fields: [roleId], references: [id])
+
+  @@id([permissionId, roleId])
+  @@map("permission_role")
+}
+
+model Shop {
+  id          Int      @id @default(autoincrement())
+  name        String
+  address     String
+  joinAt      DateTime @default(now())
+  information String   @db.Text
+  userId      Int      @unique
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("shops")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  price       Float
+  stock       Int
+  description String   @db.Text
+  categoryId  Int
+  sellerId    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id])
+  user     User     @relation(fields: [sellerId], references: [id])
+
+  images   Image[]
+  carts    CartItem[]
+  Payment  Payment[]
+  CheckOut CheckOut[]
+
+  @@map("products")
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  imageUrl  String
+  productId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("images")
+}
+
+model Cart {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  totalItems  Int
+  totalAmount Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  items   CartItem[]
+  Payment Payment[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  cartId    Int
+  productId Int
+  quantity  Int
+  total     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart    Cart    @relation(fields: [cartId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  checkOutId Int?
+
+  @@id([cartId, productId])
+  @@map("cart_items")
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  date          DateTime
+  paymentNumber String   @unique
+  cartId        Int
+  totalAmount   Float
+  isPaid        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  cart Cart @relation(fields: [cartId], references: [id])
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+
+  @@map("payments")
+}
+
+model CheckOut {
+  id          Int      @id @default(autoincrement())
+  cartId      Int
+  productId   Int
+  name        String
+  description String   @db.Text
+  price       Float
+  quantity    Int
+  total       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("checkout_items")
+}
