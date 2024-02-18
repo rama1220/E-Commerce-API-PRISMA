@@ -23,14 +23,15 @@ export const registerSellerHandler = async (req, res) => {
             address,
             information
         } = req.body;
-        await userService.registerAsSeller({
+        const newshop = await userService.registerAsSeller({
             userId,
             name,
             address,
             information
         });
         res.status(201).json({
-            message: 'Registered as seller successfully'
+            message: 'Registered as seller successfully',
+            shop: newshop
         });
     } catch (error) {
         console.error('Error registering as seller:', error);
@@ -57,7 +58,7 @@ export const updateProfileHandler = async (req, res) => {
     }
 }
 
-export const loginUserHandler= async (req, res) => {
+export const loginUserHandler = async (req, res) => {
     try {
         const {
             email,

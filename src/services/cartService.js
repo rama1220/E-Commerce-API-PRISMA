@@ -87,7 +87,7 @@ export const editCartItem = async (cartId, newQuantity, productId) => {
                 price: true
             },
         });
-        await prisma.cartItem.update({
+        const cart = await prisma.cartItem.update({
             where: {
                 cartId_productId: {
                     cartId: cartId,
@@ -96,7 +96,7 @@ export const editCartItem = async (cartId, newQuantity, productId) => {
             },
             data: {
                 quantity: newQuantity,
-                total: newQuantity * product.price 
+                total: newQuantity * product.price
             }
         });
         const cartItems = await prisma.cartItem.findMany({
@@ -119,12 +119,13 @@ export const editCartItem = async (cartId, newQuantity, productId) => {
         });
 
         return {
-            message: 'Cart item updated successfully'
+            message: 'Cart item updated successfully',
+            cart
         };
     } catch (error) {
         throw new Error(`Failed to edit cart item: ${error}`);
     }
-    };
+};
 
 
 
